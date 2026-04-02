@@ -1,17 +1,26 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Scan, Bot, Moon, Sun } from "lucide-react";
+import { Menu, X, Scan, Bot, Moon, Sun, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [dark, setDark] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, user, logout } = useAuth();
 
   const toggleDark = () => {
     setDark(!dark);
     document.documentElement.classList.toggle("dark");
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+    setOpen(false);
   };
 
   const links = [
@@ -47,17 +56,34 @@ export default function Navbar() {
           <Button variant="ghost" size="icon" onClick={toggleDark}>
             {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
-          <Link to="/scanner">
-            <Button size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground gap-1">
-              <Scan className="h-4 w-4" /> Scan
-            </Button>
-          </Link>
-          <Link to="/login">
-            <Button variant="outline" size="sm">Login</Button>
-          </Link>
-          <Link to="/signup">
-            <Button size="sm">Sign Up</Button>
-          </Link>
+          {isAuthenticated && (
+            <Link to="/scanner">
+              <Button size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground gap-1">
+                <Scan className="h-4 w-4" /> Scan
+              </Button>
+            </Link>
+          )}
+          {isAuthenticated ? (
+            <>
+              <Link to="/dashboard">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <User className="h-4 w-4" /> {user?.name}
+                </Button>
+              </Link>
+              <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2">
+                <LogOut className="h-4 w-4" /> Logout
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link to="/login">
+                <Button variant="outline" size="sm">Login</Button>
+              </Link>
+              <Link to="/signup">
+                <Button size="sm">Sign Up</Button>
+              </Link>
+            </>
+          )}
         </div>
 
         <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen(!open)}>
@@ -84,16 +110,37 @@ export default function Navbar() {
                   {l.label}
                 </Link>
               ))}
-              <div className="flex gap-2 pt-2">
-                <Button variant="ghost" size="icon" onClick={toggleDark}>
-                  {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              <div className="flex flex-col gap-2 pt-2">
+                <Button variant="ghost" size="icon" onClick={toggleDark} className="w-full justify-start">
+                  {dark ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
+                  {dark ? "Light Mode" : "Dark Mode"}
                 </Button>
-                <Link to="/login" className="flex-1">
-                  <Button variant="outline" className="w-full" size="sm">Login</Button>
-                </Link>
-                <Link to="/signup" className="flex-1">
-                  <Button className="w-full" size="sm">Sign Up</Button>
-                </Link>
+                {isAuthenticated ? (
+                  <>
+                    <Link to="/dashboard" onClick={() => setOpen(false)} className="w-full">
+                      <Button variant="outline" className="w-full justify-start gap-2" size="sm">
+                        <User className="h-4 w-4" /> {user?.name}
+                      </Button>
+                    </Link>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start gap-2" 
+                      size="sm"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="h-4 w-4" /> Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login" className="w-full" onClick={() => setOpen(false)}>
+                      <Button variant="outline" className="w-full" size="sm">Login</Button>
+                    </Link>
+                    <Link to="/signup" className="w-full" onClick={() => setOpen(false)}>
+                      <Button className="w-full" size="sm">Sign Up</Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>

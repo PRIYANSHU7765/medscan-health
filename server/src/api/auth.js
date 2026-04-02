@@ -10,13 +10,13 @@ const JWT_SECRET = process.env.JWT_SECRET || 'change-this-secret';
 
 router.post('/register', async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await createUser({ name, email, passwordHash: hashedPassword });
+    const user = await createUser({ name, email, passwordHash: hashedPassword, role: role || 'patient' });
 
     const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
 

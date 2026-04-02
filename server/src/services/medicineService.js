@@ -1,13 +1,17 @@
-const medicines = [
-  { id: 1, name: 'Paracetamol', genericName: 'acetaminophen', dosage: '500mg', stock: 100 },
-  { id: 2, name: 'Ibuprofen', genericName: 'ibuprofen', dosage: '200mg', stock: 50 },
-];
+import { query } from '../db/index.js';
 
-export const listMedicines = async () => medicines;
-
-export const createMedicine = async (payload) => {
-  const id = medicines.length ? medicines[medicines.length - 1].id + 1 : 1;
-  const medicine = { id, ...payload };
-  medicines.push(medicine);
-  return medicine;
+export const listMedicines = async () => {
+  const result = await query('SELECT * FROM medicines ORDER BY id');
+  return result.rows;
 };
+
+export const createMedicine = async ({ name, genericName, dosage, form, manufacturer, price, stock }) => {
+  const result = await query(
+    `INSERT INTO medicines (name, generic_name, dosage, form, manufacturer, price, stock)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
+     RETURNING *`,
+    [name, genericName, dosage, form, manufacturer, price, stock ?? 0],
+  );
+  return result.rows[0];
+};
+
